@@ -12,7 +12,7 @@ public class RequestParser {
         this.reader = reader;
     }
 
-    public Headers parseAndClose() throws IOException {
+    public Headers parse() throws IOException {
         //Create Response
         Headers response = new Headers();
 

@@ -16,11 +16,13 @@ public class Handler implements Runnable {
             InputStream input = socket.getInputStream();
             BufferedReader reader = new BufferedReader(new InputStreamReader(input));
 
-            Headers headers = new RequestParser(reader).parseAndClose();
-
+            Headers headers = new RequestParser(reader).parse();
             OutputStream output = socket.getOutputStream();
             PrintWriter writer = new PrintWriter(output);
-
+            if (headers == null) {
+                writeCode(500,writer);
+                return;
+            }
             switch (headers.getVerb()){
                 case Get:
                     handleGet(headers,writer);
@@ -33,6 +35,7 @@ public class Handler implements Runnable {
                     break;
             }
 
+            reader.close();
             socket.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -40,7 +43,27 @@ public class Handler implements Runnable {
     }
 
     private void handleGet(Headers headers, PrintWriter writer) {
-        byte[] bytes = new FileGetter().get(headers.getPath());
+        String accept = headers.getHeaders().get("Accept");
+        if(accept.contains("text")){
+            getWithLines(headers, writer);
+        }else{
+            getWithByteArray(headers, writer);
+        }
+        writer.flush();
+    }
+
+    private void getWithLines(Headers headers, PrintWriter writer) {
+        List<String> lines = new FileGetter().getLines(headers.getPath());
+        writeCode(200,writer);
+        writer.println("Content-Type: text/html");
+        writer.println("\r\n");
+        for (String line : lines) {
+            writer.println(line);
+        }
+    }
+
+    private void getWithByteArray(Headers headers, PrintWriter writer) {
+        byte[] bytes = new FileGetter().getBytes(headers.getPath());
         writeCode(200,writer);
         //writer.println("Content-Type: text/html");
         writer.println("\r\n");
