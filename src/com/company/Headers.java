@@ -4,7 +4,7 @@ import java.util.Map;
 
 public class Headers {
     private String path;
-    private String verb;
+    private Verb verb;
     private String httpVersion;
     private Map<String,String> headers;
 
@@ -16,12 +16,15 @@ public class Headers {
         this.path = path;
     }
 
-    public String getVerb() {
+    public Verb getVerb() {
         return verb;
     }
 
     public void setVerb(String verb) {
-        this.verb = verb;
+             if(verb.equalsIgnoreCase("GET"))  this.verb = Verb.Get;
+        else if(verb.equalsIgnoreCase("POST")) this.verb = Verb.Post;
+        else if(verb.equalsIgnoreCase("HEAD")) this.verb = Verb.Head;
+        else if(verb.equalsIgnoreCase("PUT"))  this.verb = Verb.Put;
     }
 
     public String getHttpVersion() {

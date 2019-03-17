@@ -14,30 +14,61 @@ public class Handler implements Runnable {
     public void run() {
         try {
             InputStream input = socket.getInputStream();
-
             BufferedReader reader = new BufferedReader(new InputStreamReader(input));
 
-             Headers headers = new RequestParser(reader).parseAndClose();
-
-
+            Headers headers = new RequestParser(reader).parseAndClose();
 
             OutputStream output = socket.getOutputStream();
-
-            List<String> htmlLines = new HTMLPageGetter().get();
-
             PrintWriter writer = new PrintWriter(output);
-            writer.println("HTTP/1.1 200 OK");
-            writer.println("Content-Type: text/html");
-            writer.println("\r\n");
 
-            for (String line : htmlLines) {
-                writer.print(line);
+            switch (headers.getVerb()){
+                case Get:
+                    handleGet(headers,writer);
+                    break;
+                case Post:
+                    break;
+                case Put:
+                    break;
+                case Head:
+                    break;
             }
-            writer.flush();
 
             socket.close();
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void handleGet(Headers headers, PrintWriter writer) {
+        byte[] bytes = new FileGetter().get(headers.getPath());
+        writeCode(200,writer);
+        //writer.println("Content-Type: text/html");
+        writer.println("\r\n");
+
+        for (byte b : bytes) {
+            writer.print(b);
+        }
+        writer.flush();
+    }
+
+    private void writeCode(int code, PrintWriter writer) {
+        switch (code){
+            case 200:
+                writer.println("HTTP/1.1 200 OK");
+                break;
+            case 304:
+                writer.println("HTTP/1.1 304 Not Modified");
+                break;
+            case 400:
+                writer.println("HTTP/1.1 400 Bad Request");
+                break;
+            case 404:
+                writer.println("HTTP/1.1 404 Not Found");
+                break;
+            case 500:
+                writer.println("HTTP/1.1 500 Server Error");
+                break;
+
         }
     }
 }

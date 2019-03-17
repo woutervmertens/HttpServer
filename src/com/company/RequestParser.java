@@ -18,6 +18,9 @@ public class RequestParser {
 
         //Read and split first line
         String firstLine = reader.readLine();
+        if (firstLine == null) {
+            return null;
+        }
         String[] splitFirstLine = firstLine.split(" ",3);
 
         //Set first line properties
